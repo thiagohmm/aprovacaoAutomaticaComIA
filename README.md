@@ -1,6 +1,6 @@
-# API de Auditoria de Produtos - Spring Boot
+# API de Auditoria de Produtos - Aprovação Automática com IA
 
-Conversão do script Go para Spring Boot. Esta API recebe imagens de produtos e dados via REST, e utiliza o Gemini AI para auditar se o produto está conforme o esperado.
+Sistema de aprovação automática de produtos utilizando Spring Boot e Google Gemini AI. Conversão do script Go para uma API REST completa que analisa imagens de produtos e valida conformidade com dados fornecidos.
 
 ## 🚀 Tecnologias
 
