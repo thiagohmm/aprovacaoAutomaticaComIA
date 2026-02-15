@@ -67,12 +67,12 @@ DADOS_JSON2='{
   ]
 }'
 
-# Verificar quais imagens existem
+# Verificar todas as imagens na pasta atual (qualquer extensão de imagem)
 CURL_PARAMS=""
 IMAGE_COUNT=0
 
-for IMG in frente.jpg verso.jpg lateral1.jpg lateral2.jpg codigo-barras.jpg; do
-    if [ -f "$IMG" ]; then
+for IMG in *.*; do
+    if [[ -f "$IMG" && $(file --mime-type -b "$IMG") == image/* ]]; then
         CURL_PARAMS="$CURL_PARAMS -F imagens=@$IMG"
         ((IMAGE_COUNT++))
     fi
@@ -88,8 +88,7 @@ if [ $IMAGE_COUNT -gt 0 ]; then
       | jq '.' 2>/dev/null || cat
     echo ""
 else
-    echo "⚠️  Nenhuma imagem adicional encontrada (frente.jpg, verso.jpg, etc.)"
-    echo "   Coloque algumas imagens no diretório para testar o envio múltiplo"
+    echo "⚠️  Nenhuma imagem encontrada no diretório atual"
     echo ""
 fi
 
