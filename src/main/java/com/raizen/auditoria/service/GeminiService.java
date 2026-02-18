@@ -207,6 +207,101 @@ public class GeminiService {
     }
   }
 
+  /**
+   * Dado o JSON completo da solicitação (já aprovada), pede à IA para montar
+   * o JSON de aprovação no formato esperado pelo sistema de cadastro de produtos.
+   */
+  public String montarJsonAprovacao(String jsonSolicitacaoCompleto) {
+    try {
+      log.info("Solicitando à IA montagem do JSON de aprovação...");
+
+      String prompt = construirPromptJsonAprovacao(jsonSolicitacaoCompleto);
+
+      // Payload somente texto (sem imagens)
+      String jsonPayload = String.format("""
+          {
+            "contents": [{
+              "parts": [
+                { "text": %s }
+              ]
+            }],
+            "generationConfig": {
+              "temperature": 0.1,
+              "topK": 32,
+              "topP": 1,
+              "maxOutputTokens": 4096
+            }
+          }
+          """, objectMapper.writeValueAsString(prompt));
+
+      String resposta = chamarGeminiAPI(jsonPayload);
+      JsonNode rootNode = objectMapper.readTree(resposta);
+      String textoResposta = rootNode
+          .path("candidates").get(0)
+          .path("content")
+          .path("parts").get(0)
+          .path("text").asText();
+
+      return extrairJSON(textoResposta);
+
+    } catch (Exception e) {
+      log.error("Erro ao montar JSON de aprovação via IA: {}", e.getMessage(), e);
+      throw new RuntimeException("Erro ao montar JSON de aprovação: " + e.getMessage(), e);
+    }
+  }
+
+  private String construirPromptJsonAprovacao(String jsonSolicitacao) {
+    return "Você é um assistente especializado em cadastro de produtos de conveniência.\n\n" +
+        "Com base no JSON de solicitação abaixo, monte o JSON de aprovação do produto " +
+        "no formato exato especificado.\n\n" +
+        "REGRA GERAL: Quando o campo de saída tiver o mesmo nome que um campo do JSON de entrada " +
+        "(em qualquer nível), copie o valor diretamente. Aplique as regras específicas " +
+        "somente quando o campo tiver nome diferente ou precisar de transformação.\n\n" +
+        "JSON DE ENTRADA:\n" + jsonSolicitacao + "\n\n" +
+        "MAPEAMENTO DE CAMPOS (somente os que precisam de transformação ou origem específica):\n" +
+        "- IdSolicitacao: copiar de IdSolicitacao (raiz)\n" +
+        "- DescricaoProduto: copiar de Precadastro.DescricaoProduto\n" +
+        "- Gift: copiar de Precadastro.Gift; se null usar '0'\n" +
+        "- Notabilidade: copiar de Precadastro.Notabilidade; se null usar 'Não Notável'\n" +
+        "- MarkUp: copiar de Precadastro.MarkUp; se null usar 0\n" +
+        "- IdEstruturaMercadologica: copiar de Precadastro.IdEstruturaMercadologica (pode ser null)\n" +
+        "- IdNivel1EstrMerc: copiar de Precadastro.IdNivel1EstrMerc\n" +
+        "- IdNivel2EstrMerc: copiar de Precadastro.IdNivel2EstrMerc\n" +
+        "- IdNivel3EstrMerc: copiar de Precadastro.IdNivel3EstrMerc (pode ser null)\n" +
+        "- IdNivel4EstrMerc: null (não presente no JSON de entrada)\n" +
+        "- IdSolucaoOptativa: copiar de Precadastro.IdSolucaoOptativa; se null usar 0\n" +
+        "- IdMarca: copiar de Precadastro.IdMarca\n" +
+        "- ConteudoEmbalagem: copiar de Precadastro.QuantidadeConteudoEmbalagem\n" +
+        "- IdUnidadeMedida: copiar de Precadastro.IdUnidadeMedidaEmbalagem\n" +
+        "- Segmentos: copiar de Segmentos (raiz)\n" +
+        "- StatusSolicitacao: copiar de StatusSolicitacao (raiz)\n" +
+        "- Observacao: copiar de Observacao (raiz)\n" +
+        "- Usuario: copiar de EnviadoPor (raiz)\n" +
+        "- TipoProduto: copiar de Precadastro.TipoItemMix convertendo para número; se '?' ou null usar 0\n" +
+        "- Producao: '0' se não disponível\n" +
+        "- codigosDeBarras: montar array a partir de listEmbalagemSolicitacao com este mapeamento:\n" +
+        "    idEmbalagemSolicitacao <- IdEmbalagemSolicitacao\n" +
+        "    IdSolicitacao          <- IdSolicitacao (raiz)\n" +
+        "    quantidadeEmbalagem    <- QuantidadeEmbalagem\n" +
+        "    idUnidadeMedida        <- IdUnidadeMedida\n" +
+        "    tipoCodigoBarras       <- TipoCodigoBarras\n" +
+        "    codigoBarras           <- CodigoBarras\n" +
+        "    Principal              <- false\n" +
+        "- Anexo: copiar NomeArquivo do primeiro item de Anexos; '' se vazio\n" +
+        "- ReferenciaFabricante: '' se não disponível\n" +
+        "- ForaMix: '0' se não disponível\n" +
+        "- PitStop: copiar de Revendedor.PitStop\n" +
+        "- Regional: '0' se não disponível\n" +
+        "- DiretorioAnexo: copiar de DiretorioAnexo (raiz)\n" +
+        "- DescricaoCupom: copiar de Precadastro.DescricaoProduto\n" +
+        "- IdRevendedor: copiar de IdRevendedor (raiz)\n" +
+        "- DataAprovacao: null\n" +
+        "- AprovadoPor: null\n" +
+        "- IdProduto: null\n" +
+        "- idProduto: null\n\n" +
+        "Retorne APENAS o JSON de saída, sem explicações, sem markdown.";
+  }
+
   private String extrairJSON(String texto) {
     // Remove possíveis marcadores de código markdown
     texto = texto.trim();

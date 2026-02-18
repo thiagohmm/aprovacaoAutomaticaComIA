@@ -18,4 +18,6 @@ public class AuditoriaResponse {
   private ResultadoAuditoria resultado;
   private LocalDateTime dataAuditoria;
   private String mensagem;
+  // JSON montado pela IA para envio ao sistema, preenchido apenas quando APROVADO
+  private Object jsonAprovacao;
 }

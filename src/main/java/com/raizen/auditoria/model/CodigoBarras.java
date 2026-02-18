@@ -12,4 +12,7 @@ public class CodigoBarras {
 
   @JsonProperty("codigoBarras")
   private String codigoBarras;
+
+  @JsonProperty("tipoCodigoBarras")
+  private String tipoCodigoBarras;
 }
