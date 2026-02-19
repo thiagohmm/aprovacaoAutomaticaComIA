@@ -43,3 +43,4 @@ build/
 
 ### Configurações locais ###
 application-local.properties
+.metals/
