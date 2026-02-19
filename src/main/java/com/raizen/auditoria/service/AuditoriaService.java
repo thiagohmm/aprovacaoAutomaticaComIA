@@ -3,20 +3,37 @@ package com.raizen.auditoria.service;
 import com.raizen.auditoria.dto.AuditoriaResponse;
 import com.raizen.auditoria.model.DadosNucleo;
 import com.raizen.auditoria.model.ResultadoAuditoria;
-import lombok.RequiredArgsConstructor;
+import jakarta.annotation.PostConstruct;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.ApplicationContext;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
 import java.time.LocalDateTime;
+import java.util.Map;
 
 @Slf4j
 @Service
-@RequiredArgsConstructor
 public class AuditoriaService {
 
-  private final GeminiService geminiService;
+  private final ApplicationContext context;
+  private IAService iaService;
+
+  public AuditoriaService(ApplicationContext context) {
+    this.context = context;
+  }
+
+  @PostConstruct
+  public void init() {
+    // Descobre qual serviço de IA está disponível
+    Map<String, IAService> services = context.getBeansOfType(IAService.class);
+    if (services.isEmpty()) {
+      throw new IllegalStateException("Nenhum serviço de IA configurado!");
+    }
+    this.iaService = services.values().iterator().next();
+    log.info("✓ Serviço de IA ativo: {}", iaService.getProviderName());
+  }
 
   public AuditoriaResponse processarAuditoria(
       MultipartFile[] imagens,
@@ -42,8 +59,8 @@ public class AuditoriaService {
         log.debug("Imagem {} convertida - {} bytes", i + 1, bytesImagens[i].length);
       }
 
-      // Chamar o serviço Gemini
-      ResultadoAuditoria resultado = geminiService.auditar(bytesImagens, dadosNucleo);
+      // Chamar o serviço de IA ativo
+      ResultadoAuditoria resultado = iaService.auditar(bytesImagens, dadosNucleo);
 
       log.info("Auditoria concluída - Status: {}", resultado.getStatus());
 

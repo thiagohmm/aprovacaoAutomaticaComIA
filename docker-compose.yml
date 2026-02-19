@@ -1,0 +1,60 @@
+version: '3.8'
+
+services:
+  # Ollama com Moondream (Modelo de IA Offline)
+  moondream:
+    image: ollama/ollama:latest
+    container_name: moondream
+    ports:
+      - "11434:11434"
+    volumes:
+      - ollama-data:/root/.ollama
+    environment:
+      - OLLAMA_HOST=0.0.0.0
+    networks:
+      - auditoria-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:11434"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+    restart: unless-stopped
+    # Descomente se tiver GPU NVIDIA
+    # deploy:
+    #   resources:
+    #     reservations:
+    #       devices:
+    #         - driver: nvidia
+    #           count: 1
+    #           capabilities: [gpu]
+
+  # API de Auditoria (Spring Boot)
+  auditoria-api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: auditoria-api
+    ports:
+      - "8080:8080"
+    environment:
+      # Configurar para usar Moondream
+      - AI_PROVIDER=moondream
+      - MOONDREAM_API_URL=http://moondream:11434
+      - MOONDREAM_MODEL=moondream
+      # Configurações do Gemini (caso queira trocar)
+      - GEMINI_API_KEY=${GEMINI_API_KEY:-AIzaSyBK0ibJdcCqMj4i3XIf5Cp_nqb-Z-iXwG4}
+    depends_on:
+      moondream:
+        condition: service_healthy
+    networks:
+      - auditoria-network
+    restart: unless-stopped
+
+volumes:
+  ollama-data:
+    driver: local
+
+networks:
+  auditoria-network:
+    driver: bridge

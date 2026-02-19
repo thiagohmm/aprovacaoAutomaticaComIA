@@ -1,0 +1,9 @@
+{
+  "idSolicitacao" : 30470331,
+  "resultado" : {
+    "status" : "REPROVADO",
+    "motivo" : "Auditoria reprovada por erro no processamento: Erro ao chamar API Gemini: 403 - {\n  \"error\": {\n    \"code\": 403,\n    \"message\": \"Your API key was reported as leaked. Please use another API key.\",\n    \"status\": \"PERMISSION_DENIED\"\n  }\n}\n"
+  },
+  "dataAuditoria" : "2026-02-19T16:57:56.985595086",
+  "mensagem" : "Auditoria processada com sucesso"
+}

@@ -1,0 +1,135 @@
+╔══════════════════════════════════════════════════════════════════════════════╗
+║                                                                              ║
+║                    🚀 GUIA RÁPIDO DE USO - 3 PASSOS                         ║
+║                                                                              ║
+╚══════════════════════════════════════════════════════════════════════════════╝
+
+┌──────────────────────────────────────────────────────────────────────────────┐
+│  PASSO 1: INICIAR A APLICAÇÃO                                               │
+└──────────────────────────────────────────────────────────────────────────────┘
+
+Abra um terminal e execute:
+
+    cd /home/thiagohmm/Raizen/aprovacaoAutomaticaComIA
+    java -jar target/auditoria-produtos-1.0.0.jar
+
+Aguarde ver a mensagem:
+    ✓ Serviço de IA ativo: Moondream (Offline)
+    Started AuditoriaApplication in X.XXX seconds
+
+┌──────────────────────────────────────────────────────────────────────────────┐
+│  PASSO 2: TESTAR A API (em outro terminal)                                  │
+└──────────────────────────────────────────────────────────────────────────────┘
+
+Health Check (verificar se está rodando):
+
+    curl http://localhost:8080/api/v1/auditoria/health
+
+Deve retornar: "API de Auditoria está funcionando!"
+
+┌──────────────────────────────────────────────────────────────────────────────┐
+│  PASSO 3: FAZER UMA AUDITORIA COM IMAGEM                                    │
+└──────────────────────────────────────────────────────────────────────────────┘
+
+Teste com a imagem do Xequemate:
+
+    curl -X POST http://localhost:8080/api/v1/auditoria/produtos \
+      -F "imagens=@xequemate.jpg" \
+      -F 'dados={
+        "IdSolicitacao": 12345,
+        "DescricaoProduto": "XEQUEMATE",
+        "codigosDeBarras": [{"codigoBarras": "7898357417489"}]
+      }'
+
+Resposta esperada (JSON):
+    {
+      "idSolicitacao": 12345,
+      "resultado": {
+        "status": "APROVADO" ou "REPROVADO",
+        "motivo": "Explicação detalhada..."
+      },
+      "dataAuditoria": "2026-02-19T...",
+      "mensagem": "Auditoria processada com sucesso"
+    }
+
+╔══════════════════════════════════════════════════════════════════════════════╗
+║  COMANDOS ÚTEIS                                                              ║
+╚══════════════════════════════════════════════════════════════════════════════╝
+
+Ver qual provedor está ativo:
+    ./switch-provider.sh
+
+Trocar para Gemini (online, mais preciso):
+    ./switch-provider.sh gemini
+    mvn clean package -DskipTests
+    java -jar target/auditoria-produtos-1.0.0.jar
+
+Trocar para Moondream (offline, privado):
+    ./switch-provider.sh moondream
+    mvn clean package -DskipTests
+    java -jar target/auditoria-produtos-1.0.0.jar
+
+Ver logs do container Moondream:
+    docker logs moondream
+
+Verificar se Moondream está rodando:
+    docker ps | grep moondream
+
+╔══════════════════════════════════════════════════════════════════════════════╗
+║  TROUBLESHOOTING                                                             ║
+╚══════════════════════════════════════════════════════════════════════════════╝
+
+❌ Erro: "Connection refused" ao testar API
+   → A aplicação não está rodando. Execute o PASSO 1.
+
+❌ Erro: "Container moondream não está rodando"
+   → Execute: docker start moondream
+   → Ou: ./setup-moondream-docker.sh
+
+❌ Resposta: "REPROVADO - Erro ao processar"
+   → Verifique os logs da aplicação
+   → Pode ser que a imagem não seja válida ou Moondream não conseguiu processar
+
+❌ Aplicação muito lenta
+   → Moondream pode levar 5-10s sem GPU
+   → Considere usar Gemini para mais velocidade
+
+╔══════════════════════════════════════════════════════════════════════════════╗
+║  EXEMPLO COMPLETO                                                            ║
+╚══════════════════════════════════════════════════════════════════════════════╝
+
+# Terminal 1: Iniciar aplicação
+$ cd /home/thiagohmm/Raizen/aprovacaoAutomaticaComIA
+$ java -jar target/auditoria-produtos-1.0.0.jar
+...
+✓ Serviço de IA ativo: Moondream (Offline)
+Started AuditoriaApplication in 1.234 seconds
+
+# Terminal 2: Testar
+$ curl http://localhost:8080/api/v1/auditoria/health
+API de Auditoria está funcionando!
+
+$ curl -X POST http://localhost:8080/api/v1/auditoria/produtos \
+  -F "imagens=@xequemate.jpg" \
+  -F 'dados={"IdSolicitacao":99999,"DescricaoProduto":"XEQUEMATE","codigosDeBarras":[{"codigoBarras":"7898357417489"}]}'
+
+{
+  "idSolicitacao": 99999,
+  "resultado": {
+    "status": "APROVADO",
+    "motivo": "Produto validado com sucesso..."
+  },
+  "dataAuditoria": "2026-02-19T...",
+  "mensagem": "Auditoria processada com sucesso"
+}
+
+╔══════════════════════════════════════════════════════════════════════════════╗
+║  PRONTO! Agora é só usar! 🎉                                                ║
+╚══════════════════════════════════════════════════════════════════════════════╝
+
+Documentação completa:
+  - MOONDREAM_GUIDE.md ....... Guia detalhado do Moondream
+  - MOONDREAM_READY.md ....... Resumo do setup
+  - QUICK_START.md ........... Guia geral de todos provedores
+  - AI_PROVIDER_GUIDE.md ..... Comparação Gemini vs DeepSeek
+  - README.md ................ Documentação principal

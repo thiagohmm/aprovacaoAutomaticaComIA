@@ -1,7 +1,4 @@
-# Seleção do Provider de IA (gemini, deepseek ou moondream)
-ai.provider=moondream
-
-# Configurações do servidor
+# Configurações do servidorjava -jar target/auditoria-produtos-1.0.0.jar
 server.port=8080
 server.servlet.context-path=/api
 
