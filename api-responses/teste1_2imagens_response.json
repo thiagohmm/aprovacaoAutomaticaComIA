@@ -1,9 +1,0 @@
-{
-  "idSolicitacao" : 30470331,
-  "resultado" : {
-    "status" : "REPROVADO",
-    "motivo" : "O volume do produto na 'DescricaoProduto' do JSON ('10L') não corresponde ao volume visível nas imagens do produto ('355 ml'). Embora o nome do produto 'Xequemate' seja semanticamente idêntico a 'XEQUE MATE' nas imagens e o código de barras '7898190225388' seja idêntico, a diferença de volume (10 litros vs. 355 mililitros) representa uma divergência significativa na identidade do produto."
-  },
-  "dataAuditoria" : "2026-02-19T16:13:40.211813162",
-  "mensagem" : "Auditoria processada com sucesso"
-}
